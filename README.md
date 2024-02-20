@@ -318,8 +318,6 @@ int main(){
 }
 ```
 
-## Virtual Functions
-
 ## Smart Pointer
 Smart pointer is a class template that behaves like a pointer but provides automatic memory management, helping to avoid memory leaks and other memory-related errors common in manual memory management.
 
@@ -733,7 +731,7 @@ int main() {
 }
 ```
 
-### Universal Reference And RValue Reference
+## Universal Reference And RValue Reference
 
 - **Universal Reference**:
   - Universal references are declared using the syntax `T&&`, where `T` is a template parameter.
@@ -751,6 +749,159 @@ void process(T&& arg)
 ```cpp
 void process(int&& arg)
 ```
-### Wrapper
 
+## Pack
+- A parameter pack allows functions and templates to accept a variable number of arguments of arbitrary types. 
+- Parameter packs are particularly useful when working with variadic templates, which are templates that can accept an arbitrary number of template arguments.
+
+```cpp
+template<typename T,typename... pack>
+void printMe(T t,pack... p) /* Pack Received */
+{
+    cout << t << '\t';
+    printMe(p...); /* UnPacking */
+}
+```
+
+```cpp
+printMe(1, "hello", 3.14, 'A');
+```
+### Functional Specialization
+
+## Delete And Default
+
+- **delete**:
+  - The `delete` keyword is used to explicitly prevent the compiler from generating a particular member function.
+  - Explicitly requesting the compiler to generate default member 
+  - Preventing implicit generation of certain member functions: By explicitly marking a member function as delete, you prevent the compiler from generating the default implementation of that function.
+```cpp
+class MyClass {
+public:
+    MyClass() = delete;
+    MyClass(const MyClass&) = delete; 
+    MyClass& operator=(const MyClass&) = delete; 
+};
+```
+
+- **default**:
+  - The `default` keyword is used to explicitly request the compiler to generate the default implementation of a member function.
+  - This is useful when you want to retain the default behavior provided by the compiler, but you have explicitly defined other member functions.
+```cpp
+class MyClass {
+public:
+    MyClass() = default; 
+    MyClass(const MyClass&) = default; 
+    MyClass& operator=(const MyClass&) = default; 
+};
+```
+## Operator Overload
+### Overloading new operator
+```cpp
+static void* operator new(size_t size)
+{   
+    cout << "Operator new\n";
+    return malloc(size);
+}
+```
+
+### Overloading new[] operator
+```cpp
+static void* operator new[](size_t size)
+{   
+    cout << "Operator new[]\n";
+    return malloc(size);
+}
+```
+### Overloading delete operator
+```cpp
+static void operator delete(void* ptr)
+{   
+    cout << "Operator Delete\n";
+    free(ptr);
+}
+```
+
+### Overloading delete[] operator
+```cpp
+static void operator delete[](void* ptr)
+{   
+    cout << "Operator Delete\n";
+    free(ptr);
+}
+```
+
+## Templates
+- Function templates allow you to define a single function that can work with different data types.
+
+**Function Template**
+```cpp
+template<typename T>
+T add(T a, T b) {
+    return a + b;
+}
+```
+
+**Class Template**
+```cpp
+template<typename T>
+class Array {
+private:
+    T* data;
+    size_t size;
+public:
+};
+```
+
+### Trailing return type deduction
+- The "trailing return type" syntax allows to specify the return type of a function template after the function parameters, using the `auto` keyword or `decltype`.
+- This syntax is particularly useful when the return type depends on the function parameters or involves complex type expressions.
+
+```cpp
+template<typename T1,typename T2>
+auto MulFun(T1 x,T2 y) -> double    /* return will be double */
+```
+
+`decltype(x * y)` is used as the trailing return type, which deduces the return type of the function based on the type of the expression x * y.
+```cpp
+template<typename T1,typename T2>
+auto MulFun(T1 x,T2 y) -> decltype(x*y)  (evaluates the outcome and keeps the return type )
+```
+
+Trailing return type deduction can also be used with `auto` for deducing the return type of a function from its implementation:
+```cpp
+template<typename T1,typename T2>
+auto MulFun(T1 x,T2 y) auto
+{
+  /* code */
+}
+```
+
+In C++14, the auto return type deduction feature eliminates the necessity for trailing return type specification.
+```cpp
+template<typename T1,typename T2>
+auto MulFun(T1 x,T2 y)
+{
+  /* code */
+}
+```
+
+We encounter two return types: 2.14 (double) and 2 (int). Auto deduction is not capable of discerning between these types, hence we are obliged to utilize trailing deduction, as illustrated below:
+```cpp
+template<typename T1,typename T2>
+auto MulFun14_1(T1 x,T2 y) -> double
+{
+    int par = 1;
+    cout << "MulFun14_1 for T1 = [" << typeid(T1).name() << "] \t T2 = [" << typeid(T2).name()<< "]\n";
+
+    if( 10 == par)
+    {
+        return 2.14;
+    }
+    return 2;
+} 
+```
+
+## Wrapper
+## Virtual Functions
+## Smart Pointer With Template
 
