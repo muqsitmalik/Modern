@@ -1,3 +1,10 @@
+[Compile Time And Runtime](#compile-time-and-runtime)
+
+[Upcasting](#upcasting)
+
+[Accessing Derived class member using Base type pointer - Downcasting](#accessing-derived-class-member-using-base-type-pointer---downcasting)
+
+
 ## Compile Time And Runtime
 - **Compile Time**: Occurs during compilation, where source code is translated into machine code.
 - **Runtime**: Occurs during program execution, where machine code is executed by the computer.
@@ -212,8 +219,7 @@ Order of calls in the prologue (before the constructor body begins execution) an
 - **Object Destruction**:
   - When the object goes out of scope or is explicitly deleted using the `delete` operator, the destructor of the class is called. The destructor is responsible for releasing any resources acquired by the object during its lifetime and performing cleanup operations.
 
-## Object Creation vs Constructor
-
+## Object Creation vs Constructor 
 - **Object Creation**:
   - Refers to the process of instantiating an object of a class.
   - Involves allocating memory for the object and initializing its state.
@@ -900,8 +906,1273 @@ auto MulFun14_1(T1 x,T2 y) -> double
     return 2;
 } 
 ```
+## Call Back And Function Pointer
+**Function Pointer**
 
-## Wrapper
+- A function pointer is a variable that stores the address of a function.
+- It allows you to call a function indirectly through the pointer.
+
+```cpp
+returnType (*pointerName)(parameterTypes);
+```
+
+**Callback**
+- A callback is a function that is passed as an argument to another function.
+- The receiving function can then call the callback function at a specific time or in response to an event.
+
+```cpp
+/* Function that takes a callback as an argument */
+void performOperation(int (*callback)(int, int)) {
+
+    /* Call the callback function */
+    int result = callback(3, 5);
+    std::cout << "Result: " << result << std::endl;
+}
+
+/* Callback function */
+int add(int a, int b) {
+    return a + b;
+}
+
+/* Passing the callback function to performOperation */
+performOperation(add); 
+```
+
+### using and typedef
+**typedef** and **using** are both utilized in C++ for creating aliases.
+
+In C++11 and later versions, the **using** keyword is preferred over **typedef** for defining aliases, including function pointers.
+
+To define a function pointer type that matches the signature of a callback function, you can use the **using** or **typedef** keyword as follows: 
+
+```cpp
+typedef int (*Callback)(int, int);
+
+void performOperation(Callback callback) {
+    int result = callback(3, 5);
+    std::cout << "Result: " << result << std::endl;
+}
+```
+
+```cpp
+using FPTR = void (*)();
+
+void VendorFun1(FPTR fp)
+{
+
+    std::cout << "Vendor job started\n";
+    (*fp)(); /* Call back */
+    std::cout << "Vendor job completed\n";
+}
+```
+
+This function pointer is of type FPTR, which is defined as a pointer to a function returning void and taking no arguments.
+
+**NOTE:** In C++, when you pass a function name as an argument to a function, the function name automatically decays into a pointer to the function. This happens because functions are not passed by value; instead, they are passed by their address or pointer.
+
+```cpp
+VendorFun(Fun1);
+VendorFun(&Fun1);
+```
+Both lines are functionally equivalent. In the first line, Fun1 is the name of a function, but it is automatically converted into a function pointer when passed as an argument to VendorFun. In the second line, &Fun1 explicitly takes the address of the function Fun1, resulting in a function pointer.
+
+There is a function named VendorFun() which takes a function pointer fp as its parameter.
+```cpp
+void VendorFun(FPTR fp)
+{
+    cout << "vendor job started\n";
+    (*fp)();
+    fp();
+    cout << "vendor job completed\n";
+    line();
+}
+```
+There is a function named VendorFun() which takes a function pointer fp as its parameter.
+(*fp)();: This syntax dereferences the function pointer fp and calls the function it points to. It is the traditional way to call a function using a function pointer.
+
+fp();: This syntax directly calls the function pointer fp as if it were a regular function. In C++, a function pointer can be called without explicitly dereferencing it. This shorthand notation was introduced to simplify the syntax when working with function pointers.
+
+###  Curiously Recurring Template Pattern : CRTP
+
+- The Curiously Recurring Template Pattern (CRTP) is a design pattern in C++.
+- It involves a class template inheriting from a class template specialization of itself.
+- The CRTP is utilized to achieve compile-time polymorphism.
+- It enables **static polymorphism**, allowing the derived class to access members and methods of the base class.
+
+
+```cpp
+#include <iostream>
+
+
+/* C R T P : Curiously Recurring Template Pattern */
+template<typename Derived>
+class Base
+{
+
+    public:
+    void VendorFunction()
+    {
+
+        std::cout << "Vendor Function\n";
+
+        static_cast<Derived*>(this) -> class_derived_function();
+
+        std::cout << "Vendor Function End\n";
+    }
+    private:
+    int x{0};
+};
+
+class Derived : public Base<Derived>
+{
+
+    public:
+    void class_derived_function()
+    {
+        std::cout << "Class Derived Fuction Start\n";
+    }
+    private:
+    int y{0};
+};
+
+class Derived2 : public Base<Derived2>
+{
+
+    public:
+    void class_derived_function()
+    {
+        std::cout << "Class Derived 2 Fuction Start\n";
+    }
+    private:
+    int y{0};
+};
+int main()
+{
+
+    Derived d;
+    Derived2 d2;
+
+    d.VendorFunction();
+    d2.VendorFunction();
+
+    return 0;
+}
+```
+
+Let's break down the statement **a class template inherits from a class template specialization of itself**:
+
+**Class Template:** A class template is a blueprint for creating classes. It's like a generic class that can be parameterized by one or more types or values. For example:
+
+
+```cpp
+template <typename T>
+class Base {
+    
+};
+```
+
+**Class Template Specialization:** A class template specialization is a specific instance of a class template where the template parameters are replaced with specific types or values. For example:
+
+```cpp
+class Base<int> {
+    
+};
+```
+
+**Inherits from Itself:** In the context of the Curiously Recurring Template Pattern (CRTP), a class template inherits from a specialization of itself. This means that the class template is used as a base class for its own specialization. For example:
+
+```cpp
+template <typename Derived>
+class Base {
+    
+};
+
+class Derived : public Base<Derived> {
+    
+};
+```
+
+### CallBack Member Function
+
+```cpp
+using FPTR = void(CVendor::*)();
+
+void VendorFun(CVendor& cv, FPTR fp)
+{
+    cout << "vendor job started\n";
+
+    (cv.*fp)(); //member function callback
+
+    cout << "vendor job completed\n";
+
+}
+
+int main()
+{
+    CVendor cv1(111, 222);
+    CVendor cv2(100, 200);
+
+    FPTR fp1 = &CVendor::f1;
+    FPTR fp2 = &CVendor::f2;
+
+    VendorFun(cv1, fp1);
+    VendorFun(cv1, fp2);
+    VendorFun(cv2, fp1);
+    VendorFun(cv2, fp2);
+
+    return 0;
+}
+```
+
+- (cv.*fp)() dereferences the member function pointer fp with respect to the instance cv, effectively calling the member function on cv.
+() at the end is the function call operator, indicating the invocation of the member function.
+
+- **CVendor::** This part specifies the class scope to which the member function pointer belongs. In this case, it refers to the CVendor class.
+
+- *: This asterisk denotes that we are declaring a pointer type.
+
+### Call Back Template 
+
+- Call Back of function using template.
+- Call back of functor OR Function Object.
+```cpp
+template<typename T>
+void VendorFun(T obj)
+{
+    cout << "vendor job started T [ " << typeid(T).name() << " ]\n";;
+    obj(); //callback
+    cout << "vendor job completed\n";
+    line();
+}
+
+
+using FPTR = void(*)();
+
+void ClientFun()
+{
+    cout << "Hi I am from client\n";
+}
+
+void Fun()
+{
+    cout << "Haaaaaaaaaaaaaaa\n";
+}
+
+class CA 
+/* Functor OR Function Object */
+{
+    int a{ 0 };
+    int b{ 0 };
+public:
+    CA(int a, int b) :a(a), b(b)
+    {
+    }
+    void operator()()
+    {
+        cout << "CA Client Code a : " << a << " b=" << b << '\n';
+    }
+};
+
+int main()
+{
+    FPTR fp1 = ClientFun;
+    FPTR fp2 = Fun;
+
+    /* Passing Function Pointer */
+    VendorFun(fp1);
+    VendorFun(fp2);
+
+    /* Passing Functor */
+    CA obj(102, 103);
+    VendorFun(obj);
+
+
+    return 0;
+}
+```
+
+### Call Back Functor
+
+```cpp
+template<typename T>
+void VendorFun(T obj)
+{
+    cout << "vendor job started T [ " << typeid(T).name() << " ]\n";
+
+    /* Callback */
+    obj();
+
+    cout << "vendor job completed\n";
+    line();
+}
+
+void ClientFun(int p1, int p2)
+{
+    cout << "ClientFun called p1 : " << p1 << " p2 : " << p2 << '\n';
+}
+
+class Shubam
+{
+
+public:
+    using FPTR = void(*)(int, int);
+    Shubam(int i, int j, FPTR fp) :i(i), j(j), fp(fp)
+    {
+    }
+    void operator()() const
+    /* Inspector */
+    {
+        fp(i, j);
+    }
+private:
+    int i;
+    int j;
+    FPTR fp;
+};
+int main()
+{
+    int i = 100;
+    int j = 200;
+    Shubam::FPTR fp = &ClientFun;
+
+    Shubam shubam(i, j, fp);
+
+    VendorFun(shubam);
+    return 0;
+}
+```
+
+### Callback Lambda
+
+```cpp
+template<typename T>
+void VendorFun(T obj)
+{
+    cout << "vendor job started T [ " << typeid(T).name() << " ]\n";
+    obj();//callback
+    cout << "vendor job completed\n";
+    line();
+}
+
+int main()
+{
+    int i = 100;
+    int j = 200;
+
+    auto f1 = [=, &i]() { 
+        i += 100;  
+        cout << "I am from lambda i : " << i << ",j : " << j << '\n'; 
+    };
+		
+    VendorFun(f1);
+    return 0;
+}
+```
+
+## Lambda
+- A lambda function is a function object capable of capturing variables in its enclosing scope.
+- It provides a concise way to define small, inline functions.
+- Lambda functions are often used as callbacks or for short operations.
+
+```cpp
+[capture list] (parameter list) mutable(optional) noexcept(optional) -> return_type(optional) {
+    /* Function Body */
+}
+```
+
+- **Capture list:** Specifies which variables from the enclosing scope should be captured by value or by reference. It is optional.
+- **Parameter list:** Specifies the parameters of the lambda function. It can be empty if the lambda takes no parameters.
+- **Mutable specifier (optional):** Indicates that the lambda function can modify variables captured by value. It is optional.
+- **Noexcept specifier (optional):** Specifies whether the lambda function can throw exceptions. It is optional.
+- **Return type (optional):** Specifies the return type of the lambda function. It is optional and can be omitted if the compiler can deduce the return type.
+
+### Capturing
+
+#### Capturing By Value & using mutable
+
+```cpp
+/*
+[capture](parms){body}
+
+capture - capture information outside the function
+*/
+
+int main()
+{
+    std::vector<int> v{1,2,3,4,5};
+
+    int lastResult{-1};
+
+    std::for_each(begin(v),end(v),[lastResult](int n) mutable
+    {   
+        lastResult = n+1;
+      
+        std::cout << n << ",";
+        std::cout << lastResult << std::endl;
+        
+    });
+
+    std::cout << std::endl;
+    
+    std::cout << lastResult << std::endl;
+
+    return 0;
+}
+```
+- Here  is captured as a copy and can be change using mutable inside the lambda body.
+- Without mutable we cant change it. It will be read only. 
+- If we use[=] variable will become copy and read only.But for static or globat it wont work.
+
+```cpp
+
+static int s_variable = 5;
+int global = 10;
+int main()
+{
+    std::vector<int> v{1,2,3,4,5};
+
+    std::for_each(begin(v),end(v),[=]  (int n) 
+    {   
+        s_variable = 100;
+        global = 200;
+    });
+    
+    std::cout << s_variable << std::endl;
+    std::cout << global << std::endl;
+
+    return 0;
+}
+```
+
+#### Capturing by reference
+
+- Capture i,j by reference using &
+
+```cpp
+auto f1 = [&i, &j]()  { 
+    i += 100; 
+    j += 200; 
+    cout << "I am from lambda i : " << i << ",j : " << j << '\n'; 
+};
+```
+
+#### Capturing using this
+
+- this: captures by reference 
+- *this: captures by copy. To make changes use mutable
+
+```cpp
+struct my
+{   
+
+    void fun()
+    {  
+
+        auto lptr = [this]() 
+        {
+
+            this->counter++;
+            std::cout << "Counter inside lambda: " << counter << std::endl;
+            
+        };
+
+        lptr();
+
+
+        std::cout << "Counter: " << counter << std::endl;
+        
+    }
+
+    int counter{0};
+};
+
+int main()
+{
+
+    my object;
+
+    object.fun();
+    object.fun();
+    object.fun();
+    object.fun();
+
+    return 0;
+}
+```
+
+```cpp
+
+/* Inspector () operator */
+auto f1 = []() {
+    cout << "I am from lambda\n"; 
+};
+
+/* Mutator () operator */
+auto f1 = []() mutable {
+    cout << "I am from lambda\n"; 
+};
+
+/* Inspector () operator */
+auto f1 = [i]() { 
+    /*i += 100;*/ 
+    /* i passes by value can cannot be updated without using mutable*/
+    cout << "I am from lambda\n"; 
+};
+
+/* Capture i by value inspector () operator */
+auto f1 = [i]() {  
+    cout << "I am from lambda i : " << i << '\n';
+};
+
+/* Capture i,j by value mutator () operator */
+auto f1 = [i, j]() mutable { 
+    i += 100; 
+    j += 200; 
+    cout << "I am from lambda i : " << i << ",j : " << j << '\n'; 
+};
+
+/* Capture all by value mutator () operator */
+auto f1 = [=]() mutable { 
+    i += 100; 
+    j += 200; cout << "I am from lambda i : " << i << ",j : " << j << '\n'; 
+};
+
+/* Capture all by value inspector () operator */
+auto f1 = [=]()  {  
+    cout << "I am from lambda i : " << i << ",j : " << j << '\n'; 
+};
+
+/* Capture i,j by reference inspector () operator */
+auto f1 = [&i, &j]()  { 
+    i += 100; 
+    j += 200; 
+    cout << "I am from lambda i : " << i << ",j : " << j << '\n'; 
+};
+
+/* Capture all by reference inspector () operator */
+auto f1 = [&]()  { 
+    i += 100; 
+    j += 200; 
+    cout << "I am from lambda i : " << i << ",j : " << j << '\n'; 
+};
+
+/* Capture everything by reference except j */
+auto f1 = [&,j]()  { 
+    i += 100;  
+    cout << "I am from lambda i : " << i << ",j : " << j << '\n'; 
+};
+
+/* Capture everything by value except i */
+auto f1 = [=, &i]() { 
+    i += 100;  
+    cout << "I am from lambda i : " << i << ",j : " << j << '\n'; 
+};	
+```
+
+- Members are captured by reference
+```cpp
+class CA
+{
+    int x{ 10 };
+    int y{ 20 };
+public:
+    void fun1()
+    {
+        int a = 111;
+        int b = 222;
+        /* Members captured by reference and locals captured by value */
+        auto fnc = [=]() {
+            x += 10;
+            //a += 10;//error
+            cout << "x=" << x << '\n';
+            cout << "y=" << y << '\n';
+            cout << "a=" << a << '\n';
+            cout << "b=" << b << '\n';
+        };
+        VendorFun(fnc);
+    }
+
+    void fun2()
+    {
+        int a = 111;
+        int b = 222;
+        /* Members and locals captured by reference */
+        auto fnc = [&]() {
+            x += 10;
+            a += 10;
+            cout << "x=" << x << '\n';
+            cout << "y=" << y << '\n';
+            cout << "a=" << a << '\n';
+            cout << "b=" << b << '\n';
+        };
+        VendorFun(fnc);
+    }
+};
+```
+
+### Capturing members by value and reference using this
+
+```cpp
+class CA
+	{
+		int x{ 10 };
+		int y{ 20 };
+	public:
+    void fun3()
+		{
+			int a = 111;
+			int b = 222;
+			/* Members captured  by reference */
+			auto fnc = [this]() {
+				x += 10;
+				y += 20;
+				cout << "x=" << x << '\n';
+				cout << "y=" << y << '\n';
+
+			};
+			VendorFun(fnc);
+		}
+
+
+		void fun4()
+		{
+			int a = 111;
+			int b = 222;
+			/* Members captured  by value */
+			auto fnc = [lcl = *this]() {
+				//lcl.x += 10;
+				//lcl.y += 20;
+				cout << "x=" << lcl.x << '\n';
+				cout << "y=" << lcl.y << '\n';
+
+			};
+			VendorFun(fnc);
+		}
+
+		void fun()
+		{
+			int a = 111;
+			int b = 222;
+
+			/* Members captured  by value */
+
+			auto fnc = [*this]() {//c++17 onwards
+				//x += 10;
+				//y += 20;
+				cout << "x=" << x << '\n';
+				cout << "y=" << y << '\n';
+
+			};
+			VendorFun(fnc);
+		}
+	};
+```
+
 ## Virtual Functions
+- **vptr:** This is a pointer to the virtual function table (vtable) of the class to which object points.
+
+#### Accessing VTable
+
+```cpp
+using FPTR = void(*)();
+
+CC obj2;
+
+//((void(*)())* (long*)*(long*)&obj2)();
+
+/* step 1 reach the vptr */
+long* vptr = (long*)&obj2;
+
+/*step 2 reach the vtable */
+long* vtable = (long*)*vptr;
+
+/* step 3 reach the function */
+FPTR fp=(FPTR)vtable[0];
+
+/* void(*fp)() = (void(*)())vtable[0]; c syntax */
+
+
+/* step 4 callback */
+fp();
+
+/* (*fp)();//c-syntax */
+
+```
+
+```cpp
+CA obj;
+CA* objPtr = &obj;
+CA& objRef = obj;
+
+objPtr->f2(); /* objPtr->vptr->vtable[0](); */
+
+objRef.f2(); /* objRef.vptr->vtable[0](); */
+```
+
+#### Working
+
+```cpp
+class CA
+{
+public:
+    CA()
+    /* setvptr(CA::Vftable) */
+    {
+    }
+    void DoJob()
+    {
+        /* this->Apple(); //this->vptr->vtable[0](); */
+        Apple();
+    }
+    virtual void Apple()
+    {
+        cout << "CA::Apple Ooty\n";
+    }
+    ~CA()
+    /* setvptr(CA::Vftable) */
+    {
+    }
+};
+class CB :public CA
+{
+public:
+    CB()
+    /* CA::CA() , setvptr(CB::Vftable) */
+    {
+    }
+    void Apple() override { cout << "CB::Apple Shimla\n"; }
+    ~CB()
+    /* setvptr(CB::Vftable) */
+    {
+    }/* CA::~CA() */
+};
+```
+
+- The `vptr` (virtual function pointer) is not reset during object destruction. Instead, it remains unchanged from its initialization during object construction.
+- During object destruction, the compiler-generated or user-defined destructor is invoked. If the class has a virtual destructor (i.e., declared as `virtual ~ClassName()`), the compiler ensures that the proper destructor(s) for all base classes are called in the correct order.
+- This is achieved through the vtable (virtual function table). The vtable contains entries for all the virtual functions of the class, including the destructor(s). When an object is destroyed, the compiler uses the `vptr` to navigate to the appropriate entry in the vtable and invokes the destructor(s) for all the base classes, following the inheritance hierarchy.
+- So, it's not about resetting the `vptr` during destruction but rather using it to ensure that the correct destructors are called for all base classes through the vtable mechanism.
+
+### Virtual Destructor
+
+```cpp
+#include<iostream>
+using namespace std;
+#define line(msg) cout<<"________________"#msg"______________________\n"
+
+class CA
+{
+public:
+	static void* operator new(size_t size)
+	{
+		cout << "CA::operator new\n";
+		return malloc(size);
+	}
+	static void operator delete(void *pv)
+	{
+		cout << "CA::operator delete\n";
+		free(pv);
+	}
+	CA()
+	{
+		cout << "CA Ctor\n";
+	}
+	virtual ~CA()
+	{
+		cout << "CA D-tor\n";
+	}
+};
+
+class CB:public CA
+{
+public:
+	CB()
+	{
+		cout << "CB Ctor\n";
+	}
+	static void* operator new(size_t size)
+	{
+		cout << "CB::operator new\n";
+		return malloc(size);
+	}
+	static void operator delete(void* pv)
+	{
+		cout << "CB::operator delete\n";
+		free(pv);
+	}
+	~CB()
+	{
+		cout << "CB D-tor\n";
+	}
+};
+	
+int main()
+{
+	CA* pt = new CB();
+	line();
+	delete pt;
+
+	return 0;
+}
+```
+1. If the destructor in the base class is not virtual:
+   - When you delete the object through the base class pointer, only the destructor of the base class is called.
+   - This is because the compiler treats the pointer as pointing to an object of the base class type, so it only knows about the base class destructor.
+   - This can lead to memory leaks if the derived class has dynamically allocated resources that need to be cleaned up.
+
+2. If the destructor in the base class is virtual:
+   - When you delete the object through the base class pointer, the virtual destructor mechanism ensures that the destructor of the most derived class is called.
+   - This is achieved by using the virtual function table (vtable) mechanism.
+   - Each class with virtual functions has a vtable, which contains pointers to the virtual functions of that class.
+   - The vtable of the most derived class contains pointers to all virtual functions, including the destructor.
+   - When you delete an object through a base class pointer, the compiler uses the vtable to determine the correct destructor to call, ensuring that the destructors of all classes in the inheritance hierarchy are called in the correct order.
+   - This ensures proper cleanup of resources allocated by the derived classes.
+
+#### Why virtual
+Using the virtual keyword for a function in a base class is essential when you want to achieve runtime polymorphism and enable dynamic dispatch of function calls to the appropriate derived class implementations. Here's why you should use virtual:
+
+   - **Dynamic Binding:** When a function is declared as virtual in the base class, it allows derived classes to provide their own implementations of that function. During runtime, the appropriate derived class implementation is chosen based on the actual object type, enabling dynamic binding or late binding.
+
+   - **Polymorphism:** Without the virtual keyword, function calls are resolved at compile-time based on the static type of the pointer or reference. This means that if you call a function through a base class pointer or reference, the base class version of the function will always be called, even if the object being referred to is of a derived class. This behavior is called static binding or early binding and does not support polymorphic behavior.
+
+   - **Overriding:** When a function is declared virtual in the base class and overridden in a derived class, it allows the derived class to provide specialized behavior while maintaining a common interface. This is crucial for implementing the Liskov Substitution Principle (LSP) and ensuring that derived classes can be used interchangeably with base class objects without affecting correctness.
+
+   - **Runtime Polymorphism:** Virtual functions enable runtime polymorphism, where the appropriate function implementation is determined at runtime based on the actual type of the object. This is essential for implementing object-oriented design principles like inheritance, encapsulation, and abstraction.
+
+```cpp
+#include <iostream>
+
+class base
+{
+    public:
+    void fn()
+    {
+
+        std::cout << "Base::Function" << std::endl;
+    }
+};
+
+class derived : public base
+{
+
+    public:
+    void fn()
+    {
+        std::cout << "Derived::Function" << std::endl;
+    }
+};
+
+
+int main()
+{   
+
+    derived d;
+
+    base* b = &d;
+
+    b->fn();
+
+    return 0;
+} 
+```
+**OUTPUT**
+```cpp
+Base::Function
+```
+
+With Virtual keyword
+```cpp
+#include <iostream>
+
+class base
+{
+    public:
+    virtual void fn()
+    {
+
+        std::cout << "Base::Function" << std::endl;
+    }
+};
+
+class derived : public base
+{
+
+    public:
+    void fn()
+    {
+        std::cout << "Derived::Function" << std::endl;
+    }
+};
+
+
+int main()
+{   
+
+    derived d;
+
+    base* b = &d;
+
+    b->fn();
+
+    return 0;
+} 
+```
+**OUTPUT**
+```cpp
+Derived::Function
+```
+
+
+## Principle and Design pattern
+
+1. yagni -> you arn't gonna need it
+2. High cohession
+3. SRP -> Single Responsibility Priniciple
+4. Kiss -> keep it simple and stupid
+5. Dry/Die/Wet/Oaoo -> dont repeat yourself/duplication is evil/We Enjoy typing/Once and only once
+6. LSP -> Liskov's Substitution Principle
+
+### SRP (Single Responsibility Principle)
+The idea is to keep classes focused and cohesive by separating different concerns or responsibilities into separate classes.
+
+
+```cpp
+/* Rejected class ( Violates SRP ) */
+class Account
+{
+public:
+    void DoDebitSavings(int Accid, int amount)
+    {
+        cout << "Debit Savings\n";
+    }
+    void DoDebitCurrent(int Accid, int amount)
+    {
+        cout << "Debit Current\n";
+    }
+};
+
+/* Approved Class */
+class SavingsAccount
+{
+public:
+    void DoDebitSavings(int Accid, int amount)
+    {
+        cout << "Debit Savings\n";
+    }
+};
+
+class CurrentAccount
+{
+public:
+    void DoDebitCurrent(int Accid, int amount)
+    {
+        cout << "Debit Current\n";
+    }
+};
+```
+
+### Dry/Die/Wet/Oaoo -> dont repeat yourself/duplication is evil/We Enjoy typing/Once and only once
+
+```cpp
+//Rejected class(violates Dry) 
+class SavingsAccount
+{
+public:
+    void DoDebitSavings(int Accid, int amount)
+    {
+        cout << "Open DB\n";
+        cout << "Debit Savings\n";
+        cout << "Close DB\n";
+    }
+};
+
+class CurrentAccount
+{
+public:
+    void DoDebitCurrent(int Accid, int amount)
+    {
+        cout << "Open DB\n";
+        cout << "Debit Current\n";
+        cout << "Close DB\n";
+    }
+};
+```
+**Template method pattern**
+- Use of virtual function
+```cpp
+//Approved class
+class Account
+{
+protected:
+    virtual void ActualDebit(int Accid, int amount) = 0;
+
+public:
+    void Debit(int Accid, int amount)
+    {
+        cout << "Open DB\n";
+        ActualDebit(Accid, amount);
+        cout << "Close DB\n";
+    }
+};
+
+class SavingsAccount :public Account
+{
+protected:
+    void ActualDebit(int Accid, int amount) override
+    {
+        cout << "Debit Savings\n";
+    }
+};
+
+class CurrentAccount :public Account
+{
+protected:
+    void ActualDebit(int Accid, int amount) override
+    {
+        cout << "Debit Current\n";
+    }
+};
+
+int main()
+{
+    SavingsAccount sa;
+    sa.Debit(101, 100);
+    line();
+    CurrentAccount cu;
+    cu.Debit(102, 200);
+    return 0;
+}
+```
+
+## std::function
+std::function is a versatile and powerful tool in C++ that allows you to store and manipulate callable objects, such as functions, lambdas, function pointers, or functors, in a type-safe and flexible manner.
+
+```cpp
+#include <iostream>
+#include <functional>
+
+int add(int a, int b) {
+    return a + b;
+}
+
+struct Multiply {
+    int operator()(int a, int b) const {
+        return a * b;
+    }
+};
+
+void vendor(std::function<int(int,int)> fn)
+{
+    std::cout<<"Vendor start" << std::endl; 
+    int result = fn(1,2);
+    td::cout<<"Vendor Result: " << result << std::endl;
+    std::cout<<"Vendor end" << std::endl;
+}
+
+int main() {
+    
+    std::function<int(int, int)> func;
+    func = add;
+    std::cout << "add(3, 4) = " << func(3, 4) << std::endl;
+
+    Multiply multiply;
+    func = multiply;
+    std::cout << "multiply(3, 4) = " << func(3, 4) << std::endl;
+
+    func = [](int a, int b) { return a - b; };
+    std::cout << "subtract(3, 4) = " << func(3, 4) << std::endl;
+
+    func = [](int a, int b) mutable -> int { return a - b; };
+    std::cout << "subtract(3, 4) = " << func(3, 4) << std::endl;
+
+    return 0;
+}
+```
+
+## std::bind
+std::bind is a function provided by the C++ Standard Library in the functional header. It allows you to create a callable object (function object) by binding arguments to a function or member function. 
+
+```cpp
+#include <iostream>
+#include <functional>
+
+void print_sum(int a, int b) {
+    std::cout << "Sum: " << (a + b) << std::endl;
+}
+
+int main() {
+    auto add_five = std::bind(print_sum, 5, std::placeholders::_1);
+    add_five(10);
+
+    auto add_nums = std::bind(print_sum, std::placeholders::_1, std::placeholders::_2);
+    add_nums(7, 8);
+
+    return 0;
+}
+```
+
+```cpp
+#include <iostream>
+#include <functional>
+
+void fn(int a, int b)
+{
+    std::cout << a << " " << b << std::endl;
+}
+
+int main()
+{
+    std::function<void()> f = std::bind(&fn, 1, 2);
+    f();
+
+    std::function<void(int)> f1 = std::bind(&fn, std::placeholders::_1, 2);
+    f1(5);
+    return 0;
+}
+```
+
+```cpp
+void Vendor3(std::function<int(int)> obj)
+{
+    cout << "start3\n";
+    int res = obj(80);
+    cout << "stop3 : res : " << res << '\n';
+    line();
+}
+
+int main()
+{    
+    std::function<int(int)> fnc1 = std::bind(&ClientFun, i, placeholders::_1);
+    Vendor3(fnc1);
+
+    std::function<int(int)> fnc2 = std::bind(&ClientFun, placeholders::_1, i);
+    Vendor3(fnc2);
+
+    return 0;
+}
+```
+
+### std::mem_fn
+std::mem_fn is a utility function provided by the C++ Standard Library, defined in the functional header. It is used to create a callable object (function object) that can invoke a member function of a class or a pointer to member function.
+
+```cpp
+class Country
+{
+public:
+    void Bharath(int x)
+    {
+        cout << "Bharath x : " << x << '\n';
+    }
+    void India(int x)
+    {
+        cout << "India x : " << x << '\n';
+    }
+    void Hindustan(int x)
+    {
+        cout << "Hindustan x : " << x << '\n';
+    }
+    void AlHindh(int x)
+    {
+        cout << "AlHindh x : " << x << '\n';
+    }
+};
+
+int main()
+{
+    Country country;
+
+
+    std::function<void(int)> fnc = std::bind(&Country::Bharath, country, placeholders::_1);
+    fnc(100);
+
+    std::function<void(Country&, int)> fnc1 = std::mem_fn(&Country::Bharath);
+    fnc1(country, 10);
+    return 0;
+}
+```
+
+```cpp
+void VendorFun(std::function<void(int)> fn)
+{
+    cout << "Start\n";
+    fn(100);//callback
+    cout << "Stop\n";
+}
+
+class Country
+{
+public:
+    void Bharath(int x)
+    {
+        cout << "Bharath x : " << x << '\n';
+    }
+    void India(int x)
+    {
+        cout << "India x : " << x << '\n';
+    }
+    void Hindustan(int x)
+    {
+        cout << "Hindustan x : " << x << '\n';
+    }
+    void AlHindh(int x)
+    {
+        cout << "AlHindh x : " << x << '\n';
+    }
+};
+
+int main()
+{
+    Country country;
+    std::function<void(int)> fnc = std::bind(&Country::Hindustan, &country, placeholders::_1);
+    VendorFun(fnc);
+   
+    std::function<void(Country&, int)>  fnc2 = mem_fn(&Country::AlHindh);
+
+    std::function<void(int)> fnc3 = [&country, &fnc2](int par) { fnc2(country, par); };
+    VendorFun(fnc3);
+    line();
+    return 0;
+}
+```
+
 ## Smart Pointer With Template
+## Mutable Keyword To Override Const 
+## Wrapper
+## Functor
+
+Sounds like: 
+Func - function
+tor - constructor 
+Constructing out of functions - Function Object
+We can think of using a object as a function. But objects have data and actions associated with them.
+There fore functor is function with state
+Key to use a object like a function OR to hold the stare of function : operator()
+
+Lambda - constructs a closure
+Closure - unnamed function object capable of capturing variables in scope 
+
+## lvalue & rvalue
+
+lvalue: something with a memory location. &(variable)
+rvalue: on the right side of an assignment operator. Does not point anywhere
+
+lvalue reference
+
+possible: 
+int x = 10;
+int& ref = x;
+
+not possible:
+
+int& ref = 10; 
+10 does't have a memory location so ref can not point to it
+
+Rvalue reference
+int&& ref = 10; 
+
+Here 10 is created in a temp created where if in case of lvalue it will be copied and then stored to ref. but in case of r value referece it id directly moved hence avoiding copy
+
+## Thread
+Mutex
+In multithreaded programming, a mutex (short for mutual exclusion) is a synchronization primitive used to control access to shared resources by multiple threads. Its main purpose is to prevent simultaneous access to shared data by multiple threads, which could lead to data corruption or race conditions.
 
